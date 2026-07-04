@@ -117,17 +117,3 @@ This starts two containers:
   runs `run_edge_pipeline.py` on a loop, writing results to a shared Docker volume.
 - `ground-station` — Streamlit container reading that same shared volume, exposed on
   `localhost:8501`.
-
-## 5. What this project *does* simulate well
-- The full 3-way onboard triage logic and its bandwidth math
-- A resource-constrained "edge device" via Docker CPU/memory limits
-- Realistic-shaped telemetry (latency, simulated power draw, simulated thermal load)
-- A ground-station view of what would/wouldn't have been downlinked, and the bandwidth saved
-
-## 7. Suggested 2-day timeline
-- **Day 1 AM:** `data/download_datasets.sh`, bucket cloud dataset into 3 classes, run
-  `train_cloud_classifier.py`
-- **Day 1 PM:** Assemble/relabel wildfire + oil-spill folders, run `train_event_detector.py`
-- **Day 2 AM:** Drop both `.pth` files into `models/weights/`, sanity-check
-  `run_edge_pipeline.py` output on real weights, tune thresholds in `config.yaml`
-- **Day 2 PM:** Polish `ground_station/app.py` visuals, record demo, write pitch deck
