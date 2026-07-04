@@ -1,0 +1,29 @@
+# Simulated onboard "Jetson" container.
+#
+# IMPORTANT HONESTY NOTE: this is a plain CPU python:3.11-slim image, not an actual
+# NVIDIA L4T/Jetson image. It simulates a Jetson's *resource constraints* (via
+# docker-compose cpu/memory limits) but not its actual CUDA/TensorRT runtime.
+#
+# To run this for real on a Jetson Nano/Xavier/Orin:
+#   1. Build FROM an NVIDIA L4T base image matching your JetPack version, e.g.
+#      `nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3` instead of python:3.11-slim
+#   2. Build for the arm64 platform: `docker buildx build --platform linux/arm64 ...`
+#   3. Swap InferenceEngine's torch calls for an ONNX Runtime + TensorRT execution
+#      provider session for real hardware acceleration.
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY models/ ./models/
+COPY edge/ ./edge/
+COPY shared/ ./shared/
+
+# Generate a starter set of synthetic frames at build time so the container is
+# demoable immediately. Remove this line once you're mounting real camera_storage data.
+RUN python edge/generate_sample_frames.py
+
+CMD ["python", "edge/run_edge_pipeline.py", "--loop"]

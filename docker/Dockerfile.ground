@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ground_station/ ./ground_station/
+COPY shared/ ./shared/
+COPY edge/config.yaml ./edge/config.yaml
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "ground_station/app.py", "--server.address=0.0.0.0", "--server.port=8501"]

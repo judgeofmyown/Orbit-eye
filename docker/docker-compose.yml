@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  edge-sim:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.edge
+    container_name: orbiteye-edge-sim
+    volumes:
+      - shared_data:/app/shared_data
+    # Approximates a Jetson Nano's 4-core ARM CPU / 4GB RAM envelope.
+    # Real Jetson-specific behavior (CUDA cores, TensorRT, actual tegrastats
+    # telemetry) is NOT reproduced by these limits alone — see Dockerfile.edge.
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 4g
+    restart: unless-stopped
+
+  ground-station:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ground
+    container_name: orbiteye-ground-station
+    ports:
+      - "8501:8501"
+    volumes:
+      - shared_data:/app/shared_data
+    depends_on:
+      - edge-sim
+    restart: unless-stopped
+
+volumes:
+  shared_data:

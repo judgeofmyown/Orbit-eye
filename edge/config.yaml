@@ -1,0 +1,35 @@
+# OrbitEye-Filter edge pipeline configuration
+# All paths are relative to the project root unless absolute.
+
+paths:
+  camera_storage: "edge/camera_storage"        # simulated onboard photo storage (input)
+  shared_output: "shared_data"                 # shared volume between edge <-> ground containers
+  cloud_weights: "models/weights/cloud_classifier.pth"
+  event_weights: "models/weights/event_detector.pth"
+
+thresholds:
+  # cloud_class == overcast AND confidence >= this -> Discard
+  cloud_discard_confidence: 0.60
+  # cloud_class == partly_cloudy counts as "usable ground visible", NOT discarded
+  # event_class != none AND confidence >= this -> Priority Alert (overrides cloud discard)
+  event_priority_confidence: 0.55
+
+compression:
+  # Simulated bytes-on-the-wire per queue, used only for the bandwidth math —
+  # this is NOT real image compression, just a stand-in multiplier on raw frame size.
+  discard_size_multiplier: 0.0      # nothing transmitted
+  standard_size_multiplier: 0.15    # heavily downsampled/compressed thumbnail
+  priority_size_multiplier: 1.0     # full resolution, no compromise
+
+jetson_sim:
+  # Rough envelope for a Jetson Nano 4GB (not vendor-verified, illustrative only)
+  idle_power_watts: 2.5
+  active_power_watts: 8.0
+  max_temp_celsius: 68
+  ambient_temp_celsius: 22
+  base_inference_latency_ms: 45      # per-frame cloud-check latency
+  event_inference_latency_ms: 70     # additional latency if event model also runs
+
+pipeline:
+  loop_interval_seconds: 2           # delay between processing frames, simulates a camera duty cycle
+  image_resize: [128, 128]
