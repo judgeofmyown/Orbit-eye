@@ -16,7 +16,14 @@ RAW_DIR="$(dirname "$0")/raw"
 mkdir -p "$RAW_DIR"/{cloud,wildfire,oilspill}
 
 echo "== Cloud cover dataset =="
-kaggle datasets download -d willkoehrsen/sentinel2-drivendata-cloud-cover \
+# Using fxmikf/cloud-coverage-classification (~540MB, plain RGB, already
+# classification-labeled) instead of the 17GB+ Sentinel-2 "On Cloud N" mirror, and
+# instead of sakibahmed91/cloud2street-dataset which turned out to be Sentinel-1 SAR
+# flood-mapping data (from the "Cloud to Street" org), not RGB cloud photos — a bad
+# fit for TinyCloudNet's 128x128 RGB input. See DATASETS.md section 1 for the
+# original tradeoff discussion; swap back to the Sentinel-2 mirror if you have the
+# disk space and want the full 3-class (clear/partly_cloudy/overcast) version.
+kaggle datasets download -d fxmikf/cloud-coverage-classification \
   -p "$RAW_DIR/cloud" --unzip
 
 echo "== Wildfire dataset =="
