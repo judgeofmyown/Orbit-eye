@@ -17,7 +17,7 @@ train_cloud_classifier.py and models/weights/README.md.
 import torch
 import torch.nn as nn
 
-CLOUD_CLASSES = ["clear", "partly_cloudy", "overcast"]
+CLOUD_CLASSES = ["clear", "overcast", "partly_cloudy"]  # alphabetical: matches ImageFolder's folder ordering
 
 
 class DepthwiseSeparableConv(nn.Module):

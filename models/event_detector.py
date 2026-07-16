@@ -22,7 +22,7 @@ import torch.nn as nn
 
 from cloud_classifier import DepthwiseSeparableConv  # reuse the same building block
 
-EVENT_CLASSES = ["none", "wildfire", "oil_spill", "other_anomaly"]
+EVENT_CLASSES = ["none", "oil_spill", "other_anomaly", "wildfire"]  # alphabetical: matches ImageFolder's folder ordering
 
 
 class TinyEventNet(nn.Module):

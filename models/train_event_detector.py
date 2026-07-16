@@ -56,12 +56,13 @@ def train(data_dir: str, epochs: int, batch_size: int, lr: float, device: str):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
-    # --- optional: class-weighted loss for imbalanced disaster classes ---
-    # counts = torch.bincount(torch.tensor(train_ds.targets))
-    # weights = (1.0 / counts.float())
-    # weights = weights / weights.sum() * len(EVENT_CLASSES)
-    # criterion = nn.CrossEntropyLoss(weight=weights.to(device))
-    criterion = nn.CrossEntropyLoss()
+    # class-weighted loss: oil_spill/other_anomaly are ~40-60x rarer than
+    # wildfire/none in the prepared dataset (see data/prepare_events.py output),
+    # well past the >5:1 threshold this skeleton flagged as needing it.
+    counts = torch.bincount(torch.tensor(train_ds.targets))
+    weights = (1.0 / counts.float())
+    weights = weights / weights.sum() * len(EVENT_CLASSES)
+    criterion = nn.CrossEntropyLoss(weight=weights.to(device))
 
     best_acc = 0.0
     os.makedirs(os.path.dirname(WEIGHTS_OUT), exist_ok=True)
