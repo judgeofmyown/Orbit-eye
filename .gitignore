@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Downloaded/prepared datasets — large, regenerable via data/download_datasets.sh
+# + data/prepare_cloud.py + data/prepare_events.py. Also avoids redistributing raw
+# Kaggle dataset contents, some of which restrict redistribution outside Kaggle.
+data/raw/
+data/cloud/
+data/events/
+
+# Sample camera frames are real dataset excerpts once populated — regenerate via
+# edge/generate_sample_frames.py (synthetic) or by re-running the data pipeline,
+# don't commit real imagery.
+edge/camera_storage/*.jpg
+edge/camera_storage/*.jpeg
+edge/camera_storage/*.png
+
+# Runtime output from the edge pipeline / ground station — regenerated every run
+shared_data/
+
+# ONNX export artifacts — regenerate via models/export_onnx.py. Trained .pth
+# checkpoints ARE committed (they're tiny and make the repo runnable out of the box).
+models/weights/*.onnx
+models/weights/*.onnx.data
+models/weights/*.int8.onnx
+
+# Ground-truth correction queue (personal/local, not meant to be shared)
+corrections_applied.jsonl
