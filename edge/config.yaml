@@ -6,6 +6,8 @@ paths:
   shared_output: "shared_data"                 # shared volume between edge <-> ground containers
   cloud_weights: "models/weights/cloud_classifier.pth"
   event_weights: "models/weights/event_detector.pth"
+  fusion_weights: "models/weights/fusion_net.pth"           # optional: preferred over the two separate models if present
+  autoencoder_weights: "models/weights/anomaly_autoencoder.pth"  # optional: enables the ood_score signal
 
 thresholds:
   # cloud_class == overcast AND confidence >= this -> Discard
@@ -13,13 +15,21 @@ thresholds:
   # cloud_class == partly_cloudy counts as "usable ground visible", NOT discarded
   # event_class != none AND confidence >= this -> Priority Alert (overrides cloud discard)
   event_priority_confidence: 0.55
+  # cloud_confidence AND event_confidence both below this -> Review (models are
+  # unsure about everything; flag for a human instead of silently discarding/routing)
+  review_confidence_floor: 0.45
+  # ood_score >= this -> Review, regardless of classifier confidence (autoencoder says
+  # this frame doesn't look like any known category; 1.0 = the calibrated 95th-percentile
+  # "normal" reconstruction error, see models/train_anomaly_autoencoder.py)
+  ood_review_threshold: 1.0
 
 compression:
-  # Simulated bytes-on-the-wire per queue, used only for the bandwidth math —
-  # this is NOT real image compression, just a stand-in multiplier on raw frame size.
-  discard_size_multiplier: 0.0      # nothing transmitted
-  standard_size_multiplier: 0.15    # heavily downsampled/compressed thumbnail
-  priority_size_multiplier: 1.0     # full resolution, no compromise
+  # Real PIL JPEG re-encoding, not a guessed multiplier — see queue_manager.py.
+  # Priority frames skip this entirely and go down as the raw original bytes.
+  standard_max_dim: 320
+  standard_jpeg_quality: 35
+  review_max_dim: 480
+  review_jpeg_quality: 55
 
 jetson_sim:
   # Rough envelope for a Jetson Nano 4GB (not vendor-verified, illustrative only)
@@ -33,3 +43,13 @@ jetson_sim:
 pipeline:
   loop_interval_seconds: 2           # delay between processing frames, simulates a camera duty cycle
   image_resize: [128, 128]
+
+orbit_pass:
+  # Real LEO satellites don't have continuous downlink — only short ground-station
+  # contact windows once per orbit. Frames queue in a backlog that drains only
+  # during a contact window. time_scale speeds up the simulated clock so a short
+  # demo run can still show multiple orbits/passes.
+  orbit_period_seconds: 5400                # ~90 min LEO orbit
+  contact_window_seconds: 600               # ~10 min ground-station pass
+  time_scale: 60                            # 1 real second = 60 simulated seconds
+  max_downlink_bytes_per_second: 250000     # ~2Mbps-class downlink

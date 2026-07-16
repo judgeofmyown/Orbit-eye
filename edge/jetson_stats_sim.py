@@ -26,6 +26,7 @@ class JetsonStatsSim:
             frames_discarded_total=0,
             frames_standard_total=0,
             frames_priority_total=0,
+            frames_review_total=0,
             raw_bytes_total=0,
             downlinked_bytes_total=0,
         )
@@ -38,6 +39,7 @@ class JetsonStatsSim:
             "discard": "frames_discarded_total",
             "standard_downlink": "frames_standard_total",
             "priority_alert": "frames_priority_total",
+            "review": "frames_review_total",
         }[queue]
         self._running_totals[key] += 1
 

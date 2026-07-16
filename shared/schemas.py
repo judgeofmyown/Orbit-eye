@@ -11,6 +11,7 @@ import time
 QUEUE_DISCARD = "discard"
 QUEUE_STANDARD = "standard_downlink"
 QUEUE_PRIORITY = "priority_alert"
+QUEUE_REVIEW = "review"
 
 
 @dataclass
@@ -21,11 +22,15 @@ class FrameResult:
     cloud_confidence: float
     event_class: str                # none | wildfire | oil_spill | other_anomaly
     event_confidence: float
-    queue: str                      # discard | standard_downlink | priority_alert
+    queue: str                      # discard | standard_downlink | priority_alert | review
     raw_bytes: int                  # size of the original captured frame
     downlinked_bytes: int           # size actually scheduled for transmission (0 if discarded)
     inference_latency_ms: float
     mode: str                       # "trained" | "heuristic_fallback"
+    ood_score: float = 0.0          # autoencoder reconstruction-error anomaly score (higher = more unusual)
+    gradcam_path: Optional[str] = None   # path to saved Grad-CAM overlay, if generated
+    latitude: Optional[float] = None     # parsed from filename when the source dataset embeds GPS coords
+    longitude: Optional[float] = None
 
     def to_json(self) -> str:
         return json.dumps(asdict(self))
@@ -46,8 +51,12 @@ class TelemetrySnapshot:
     frames_discarded_total: int = 0
     frames_standard_total: int = 0
     frames_priority_total: int = 0
+    frames_review_total: int = 0
     raw_bytes_total: int = 0
     downlinked_bytes_total: int = 0
+    in_contact_window: bool = True         # whether a ground-station pass is active right now
+    seconds_to_next_event: float = 0.0     # seconds until contact starts (if idle) or ends (if in contact)
+    backlog_bytes_pending: int = 0         # downlinked-queue bytes not yet sent (waiting for a pass)
 
     def to_json(self) -> str:
         return json.dumps(asdict(self))
